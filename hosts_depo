@@ -13,3 +13,7 @@ spine01_depo
 spine02_depo
 spine03_depo
 spine04_depo
+
+[servers]
+pprb-1
+pprb-2
