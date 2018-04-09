@@ -14,12 +14,12 @@ filters:
     #     else reject;
     import_bgp_from_servers_vrf1: |
         if bgp_path.len > 1 then reject;
-        if net ~ [ 10.250.1.0/24+, 100.64.0.0/16+ ] then accept;
+        if net ~ [ 10.255.1.0/24+, 100.64.0.0/16+ ] then accept;
         reject;
 
     import_bgp_from_servers_vrf2: |
         if bgp_path.len > 1 then reject;
-        if net ~ [ 10.250.2.0/24+, 100.65.0.0/16+ ] then accept;
+        if net ~ [ 10.255.2.0/24+, 100.65.0.0/16+ ] then accept;
         reject;
 
     import_servers_static_vrf1: |

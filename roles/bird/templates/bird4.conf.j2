@@ -22,11 +22,17 @@ table {{vrf.name}};
 
 {% if filters is defined %}
 # filters begin
-{%    for f in filters %}
+{%  for f in filters %}
 filter {{f}} {
 {{ filters[f] }}
 }
-{%    endfor%}
+{%  endfor %}
+{%  if 'servers' in group_names %}
+filter export_bgp_from_servers {
+if net ~ [ {{node.router_id}}/32{% for iface in ifaces_common %}{% for ip in ifaces_common[iface].ipv4_addresses %}, {{ip|ipv4('network')}}/{{ip|ipv4('prefix')}}+{% endfor %}{% endfor %} ] then accept;
+reject;
+}
+{%  endif %}
 # filters end
 {% endif %}
 

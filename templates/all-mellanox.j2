@@ -1506,7 +1506,7 @@ node:
     interfaces:
       loopback:
         "lo:0":
-          ipv4_addresses: ["10.250.1.101/32"]
+          ipv4_addresses: ["10.255.1.101/32"]
       common:
         eth11:
           ipv4_addresses: ["10.252.1.102/30"]
@@ -1545,7 +1545,7 @@ node:
           bfd: eth22
           template: servers
       import: all
-      export: all
+      export: export_bgp_from_servers
       kernel:
         import: import_servers_static_vrf1
 
@@ -1555,7 +1555,7 @@ node:
     interfaces:
       loopback:
         "lo:0":
-          ipv4_addresses: ["10.250.1.102/32"]
+          ipv4_addresses: ["10.255.1.102/32"]
       common:
         eth11:
           ipv4_addresses: ["10.252.1.118/30"]
@@ -1594,6 +1594,6 @@ node:
           bfd: eth22
           template: servers
       import: all
-      export: all
+      export: export_bgp_from_servers
       kernel:
         import: import_servers_static_vrf2
