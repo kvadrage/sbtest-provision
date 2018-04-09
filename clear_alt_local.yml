@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  user: admin
+  become: yes
+  become_method: sudo
+  tasks:
+
+    - name: clear rc.network
+      copy: content="" dest="/etc/rc.d/rc.network"
+
+    - name: reset networking
+      blockinfile:
+        dest: /etc/rc.d/rc.network
+        block: |
+          swport reset all eth0,vagrant
+      notify: restart network
+
+    - name: clear bird config
+      copy: content="" dest="/etc/bird/bird4.conf"
+
+    - name: initialize bird4 config
+      blockinfile:
+        dest: "/etc/bird/bird4.conf"
+        block: |
+          protocol kernel {
+          }
+      notify: restart bird
+  handlers:
+    - name: restart network
+      service: name=network state=restarted
+    - name: restart bird
+      service: name=bird state=restarted

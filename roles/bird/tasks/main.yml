@@ -1,0 +1,91 @@
+---
+- name: check if node is undefined
+  fail:
+    msg: "{{inventory_hostname}} is not defined properly in vars"
+  when: node is not defined or inventory_hostname not in node|default({})
+  tags:
+    - bird
+
+- name: create ifaces vars for bird
+  set_fact:
+    ifaces_all: "{{ ({} | combine(
+                node[inventory_hostname].interfaces.loopback|default({}),
+                node[inventory_hostname].interfaces.common|default({}),
+                node[inventory_hostname].interfaces.bond|default({}),
+                node[inventory_hostname].interfaces.bridge|default({}))) }}"
+    ifaces_loopback: "{{node[inventory_hostname].interfaces.loopback|default({})}}"
+    ifaces_common: "{{node[inventory_hostname].interfaces.common|default({})}}"
+    ifaces_bond: "{{node[inventory_hostname].interfaces.bond|default({})}}"
+    ifaces_bridge: "{{node[inventory_hostname].interfaces.bridge|default({})}}"
+  when: node[inventory_hostname].interfaces is defined
+  tags:
+    - bird
+
+- name: create local bird folder
+  file: path={{bird_folder_local}} state=directory recurse=yes
+  delegate_to: localhost
+  become: false
+  when: save_local is defined and save_local == "enable"
+  tags:
+    - bird
+    - local
+
+- name: render bird4 configuration locally
+  template: src=bird4.conf.j2 dest={{bird4_conf_local}}
+  delegate_to: localhost
+  become: false
+  when: save_local is defined and save_local == "enable"
+  tags:
+    - bird
+    - local
+
+- name: render bird6 configuration locally
+  template: src=bird6.conf.j2 dest={{bird6_conf_local}}
+  delegate_to: localhost
+  become: false
+  when: save_local is defined and save_local == "enable"
+  tags:
+    - bird
+    - local
+
+- name: render bird4 configuration for switches
+  template:
+    src: bird4.conf.j2
+    dest: "{{bird4_conf_alt}}"
+    mode: 0644
+    backup: yes
+    validate: "bird4 -c %s -p"
+  when: "inventory_hostname in groups['switches_alt']"
+  notify:
+    - enable bird
+    - restart bird
+  tags:
+    - bird
+
+- name: render bird6 configuration for switches
+  template:
+    src: bird6.conf.j2
+    dest: "{{bird6_conf_alt}}"
+    mode: 0644
+    backup: yes
+    validate: "bird6 -c %s -p"
+  when: "'switches_alt' in group_names"
+  notify:
+    - enable bird
+    - restart bird
+  tags:
+    - bird
+
+- name: render bird4 configuration for rhel/centos serveres
+  template:
+    src: bird4.conf.j2
+    dest: "{{bird4_conf_centos}}"
+    mode: 0644
+    backup: yes
+    validate: "bird -c %s -p"
+  when: "'servers' in group_names"
+  notify:
+    - enable bird
+    - restart bird
+  tags:
+    - bird

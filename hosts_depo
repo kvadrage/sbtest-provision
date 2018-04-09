@@ -1,0 +1,15 @@
+[switches_alt:children]
+leafs
+spines
+
+[leafs]
+leaf01_depo
+leaf02_depo
+leaf03_depo
+leaf04_depo
+
+[spines]
+spine01_depo
+spine02_depo
+spine03_depo
+spine04_depo

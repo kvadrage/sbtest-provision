@@ -1,0 +1,68 @@
+---
+- hosts: switches_alt
+  user: admin
+  become: yes
+  become_method: sudo
+  gather_facts: False
+  tasks:
+
+    - name: clear rc.network
+      copy: content="" dest="/etc/rc.d/rc.network"
+
+    - name: reset networking
+      blockinfile:
+        dest: /etc/rc.d/rc.network
+        block: |
+          swport reset all eth0,vagrant
+      notify: restart network
+
+    - name: clear bird config
+      copy: content="" dest="/etc/bird/bird4.conf"
+
+    - name: initialize bird4 config
+      blockinfile:
+        dest: "/etc/bird/bird4.conf"
+        block: |
+          protocol kernel {
+          }
+      notify: restart bird
+  handlers:
+    - name: restart network
+      service: name=network state=restarted
+    - name: restart bird
+      service: name=bird state=restarted
+
+- hosts: servers
+  user: admin
+  become: yes
+  become_method: sudo
+  gather_facts: False
+  tasks:
+    - name: shutdown ifaces
+      command: ifdown {{item}}
+      when: item != "eth0"
+      with_items: "{{node[inventory_hostname].interfaces.common|default({})}}"
+    - name: clear ifaces
+      file:
+        path: "/etc/sysconfig/network-scripts/ifcfg-{{item}}"
+        state: absent
+      when: item != "eth0" or item != "eth1"
+      with_items: "{{node[inventory_hostname].interfaces.common|default({})}}"
+
+      notify: restart network
+
+    - name: clear bird config
+      copy: content="" dest=/etc/bird.conf
+
+    - name: initialize bird config
+      blockinfile:
+        dest: /etc/bird.conf
+        block: |
+          protocol kernel {
+          }
+      notify: restart bird
+  handlers:
+    - name: restart network
+      service: name=network state=restarted
+    - name: restart bird
+      service: name=bird state=restarted

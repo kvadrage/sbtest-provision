@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  pre_tasks:
+    - name: Verify Ansible version requirements
+      assert:
+        that: "ansible_version.full is version_compare('2.0', '>=')"
+        msg: "Ansible version 2.0 or higher is required to run this playbook"
+
+- hosts: localhost
+  user: admin
+  tasks:
+    - name: include batch vars
+      include_vars:
+        file: group_vars/batch.yml
+        name: batch
+    - name: get extra vars
+      set_fact:
+        src_template: "{{src|default('templates/all-mellanox.j2')}}"
+        dst_vars: "{{dst|default('group_vars/all')}}"
+    - name: generate all vars from template
+      template: src={{src_template}} dest={{dst_vars}}

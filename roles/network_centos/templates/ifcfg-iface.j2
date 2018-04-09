@@ -1,0 +1,24 @@
+{% set node = node[ansible_hostname] %}
+{% set intvars = ifaces_all[item] %}
+{% if item is match("^lo*") %}
+DEVICE=lo
+NAME=loopback
+{% else %}
+{% if intvars.vlan is defined and intvars.vlan %}
+VLAN=yes
+{% endif %}
+DEVICE={{item}}
+NAME={{item}}
+TYPE=Ethernet
+{% endif %}
+{% if intvars.dhcp is defined %}
+BOOTPROTO=dhcp
+{%  else %}
+BOOTPROTO=static
+{%  if intvars.ipv4_addresses is defined %}
+IPADDR={{intvars.ipv4_addresses[0] | ipaddr('address')}}
+NETMASK={{intvars.ipv4_addresses[0] | ipaddr('netmask')}}
+{%  endif %}
+{% endif %}
+ONBOOT=yes
+MTU=9000

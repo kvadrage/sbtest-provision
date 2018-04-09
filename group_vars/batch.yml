@@ -1,0 +1,6 @@
+vrfs:
+  start: 1
+  stop: 88
+  prefix: "vrf"
+  offset1: 100
+  offset2: 200
