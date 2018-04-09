@@ -1,8 +1,8 @@
 {% if global.zabbix is defined %}
 {% set zvars = global.zabbix %}
 {% endif %}
-{% if node[ansible_hostname].zabbix is defined %}
-{% set zvars = node[ansible_hostname].zabbix %}
+{% if node[inventory_hostname].zabbix is defined %}
+{% set zvars = node[inventory_hostname].zabbix %}
 {% endif %}
 
 # This is a configuration file for Zabbix agent daemon (Unix)
@@ -213,7 +213,7 @@ ServerActive={{zvars.server_active}}
 {% if zvars.hostname is defined -%}
 Hostname={{zvars.hostname}}
 {% else %}
-Hostname={{ansible_hostname}}
+Hostname={{inventory_hostname}}
 {% endif -%}
 
 ### Option: RefreshActiveChecks

@@ -21,3 +21,11 @@ filters:
         if bgp_path.len > 1 then reject;
         if net ~ [ 10.250.2.0/24+, 100.65.0.0/16+ ] then accept;
         reject;
+
+    import_servers_static_vrf1: |
+        if net ~ [ 100.64.0.0/16+ ] then accept;
+        reject;
+
+    import_servers_static_vrf2: |
+        if net ~ [ 100.65.0.0/16+ ] then accept;
+        reject;

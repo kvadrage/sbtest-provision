@@ -56,6 +56,9 @@ protocol bfd {
     {% else %}
       multiplier 3;
     {% endif %}
+    {% if bfdvars.passive is defined and bfdvars.passive %}
+      passive off;
+    {% endif %}
     };
   {% endif %}
 {% endfor %}
@@ -98,8 +101,21 @@ protocol kernel {
     learn on; # Learn all alien routes from the kernel
     # persist; # Don't remove routes on bird shutdown
     scan time 20; # Scan kernel routing table every 20 seconds
+{% if bgpvars.kernel is defined %}
+{%   if bgpvars.kernel.import is defined %}
+    import filter {{bgpvars.kernel.import}};
+{%   else %}
+    import none;
+{%   endif %}
+{%   if bgpvars.kernel.export is defined %}
+    export filter {{bgpvars.kernel.export}};
+{%   else %}
+    export all;
+{%   endif %}
+{% else %}
     import none; # Default is import all
     export all; # Default is export none
+{% endif %}
     # kernel table 254; # Kernel table to synchronize with (default: ain)
 {% if bgpvars.merge_paths is defined and bgpvars.merge_paths %}
     merge paths on;
@@ -213,6 +229,9 @@ protocol bgp {{neigh.name}} {{bgp_from}} {
     local as {{neigh.local_asn}};
 {%   else %}
     local as {{bgpvars.local_asn}};
+{%   endif %}
+{%   if neigh.passive is defined and neigh.passive %}
+    passive on;
 {%   endif %}
     neighbor {{neigh.ipv4 | ipaddr('address') }} as {{neigh.asn}};
 {#
