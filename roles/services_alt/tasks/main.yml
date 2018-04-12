@@ -1,94 +1,100 @@
-#Setup the switch time zone (Note this will always report changed if re-run after the dpkg-reconfigure)
+---
+- name: check if node is undefined
+  fail:
+    msg: "{{inventory_hostname}} is not defined properly in vars"
+  when: node is not defined or inventory_hostname not in node|default({})
+  tags:
+    - services
+
+- name: create services vars
+  set_fact:
+    node_services: "{{ {} | combine(global.services|default({}),
+                            node[inventory_hostname].services|default({})) }}"
+  tags:
+    - services
+
 - name: setup timezone
   lineinfile:
     dest: "{{clock_file}}"
-    regexp: "{{item.regexp}}"
-    line: "{{item.line}}"
-  when: global.clock is defined and global.clock.timezone
-  with_items:
-    - { regexp: "^ZONE=", line: "ZONE={{global.clock.timezone}}"}
+    regexp: "^ZONE="
+    line: "ZONE={{node_services.clock.timezone}}"
+  when: node_services.clock is defined and node_services.clock.timezone is defined
   notify:
     - update timezone
   tags:
-    - time_setup
-    - initial_setup
+    - time
+    - services
 
 - name: setup NTP
-  template: src=ntp.j2 dest=/etc/ntp.conf
-  when: global.services is defined and global.services.ntp is defined
+  template: src=ntp.j2 dest="{{ntp_file}}"
+  when: node_services.clock is defined and node_services.clock.ntp is defined
   notify:
     - restart NTP
-    - verify NTP
   tags:
-    - time_setup
-    - ntp_setup
-    - initial_setup
+    - time
+    - ntp
+    - services
 
-- name: setup SNMP
-  template: src=snmpd.j2 dest=/etc/snmp/snmpd.conf
-  when: global.services is defined and global.services.snmp is defined
-  notify:
-    - restart SNMP
-    - verify SNMP
-  tags:
-    - snmp_setup
-    - initial_setup
-
-- name: create proxy files if needed
-  copy:
-    content: ""
-    dest: "{{item.dest}}"
-    force: no
-    group: root
-    owner: root
-    mode: "{{item.mode}}"
-  with_items:
-    - { dest: '/etc/profile.d/proxy.sh', mode: "0755" }
-    - { dest: '/etc/apt/apt.conf.d/90apt-proxy', mode: "0644" }
-  when: global.proxy is defined
-  tags:
-    - proxy_setup
-    - initial_setup
-
-- name: setup proxy
+- name: setup syslog
   blockinfile:
-    dest: "{{item.dest}}"
-    marker: "##{mark} -- Proxy Ansible -- ##"
+    dest: "{{syslog_file}}"
     block: |
-      {{item.proxy}}
-  with_items:
-    - { dest: '/etc/wgetrc', proxy: "http_proxy = {{global.proxy.http}}" }
-    - { dest: '/etc/wgetrc', proxy: "https_proxy = {{global.proxy.https}}" }
-    - { dest: '/etc/wgetrc', proxy: "ftp_proxy = {{global.proxy.ftp}}" }
-    - { dest: '/etc/profile.d/proxy.sh', proxy: 'export http_proxy={{global.proxy.http|""}}' }
-    - { dest: '/etc/profile.d/proxy.sh', proxy: 'export https_proxy={{global.proxy.https|""}}' }
-    - { dest: '/etc/profile.d/proxy.sh', proxy: 'export ftp_proxy={{global.proxy.ftp|""}}' }
-  when: global.proxy is defined
+      # remote syslog to {{node_services.syslog.server}}
+      *.*  @{{node_services.syslog.server}}
+  when: node_services.syslog is defined and node_services.syslog.server is defined
+  notify:
+    - restart syslog
   tags:
-    - proxy_setup
-    - initial_setup
+    - syslog
+    - services
 
-#This overrides the http proxy in the 90apt-proxy
-- name: Setup APT proxy
-  copy: content='Acquire::http::Proxy "{{global.proxy.apt}}";\n' dest='/etc/apt/apt.conf.d/90apt-proxy'
-  when: global.proxy is defined and global.proxy.apt is defined
-  tags:
-    - apt_proxy_setup
-    - initial_setup
-
-# - name: Setup TACACS+ authentication
-#   template: src=tacplus_servers.j2 dest=/etc/tacplus_servers
-#   when: global.services is defined and global.services.tacacs is defined
-#   notify: restart auditd
-#   tags:
-#     - tacacs_setup
-#     - initial_setup
-
-- name: Setup Zabbix Agent
-  template: src=zabbix_agentd.j2 dest=/etc/zabbix/zabbix_agentd.conf
-  when: global.services is defined and global.services.zabbix_agent is defined
+- name: setup Zabbix Agent
+  template: src=zabbix_agentd.j2 dest={{zabbix_agent_file}}
+  when: node_services.zabbix is defined
   notify:
     - restart Zabbix Agent
   tags:
-    - zabbix_setup
-    - initial_setup
+    - zabbix
+    - services
+
+- name: setup AAA
+  template: src="{{item.template}}" dest="{{item.file}}"
+  with_items:
+    - { template: "nsswitch.j2", file: "{{nsswitch_file}}" }
+    - { template: "pamd_sshd.j2", file: "{{pamd_sshd_file}}" }
+    - { template: "pam_radius_auth.j2", file: "{{pam_radius_file}}" }
+  when: node_services.aaa is defined
+  notify:
+    - restart sshd
+  tags:
+    - aaa
+    - services
+
+- name: add AAA user
+  user:
+    name: "{{aaa_user}}"
+    shell: /bin/bash
+    comment: AAA user
+  tags:
+    - aaa
+    - services
+
+- name: render AAA user .bashrc
+  template: src="aaa_user_bashrc.j2" dest="{{aaa_user_bashrc_file}}" owner="{{aaa_user}}"
+  tags:
+    - aaa
+    - services
+
+- name: get AAA user passwd line
+  command: getent passwd "{{aaa_user}}"
+  register: getent_passwd
+  changed_when: False
+  tags:
+    - aaa
+    - services
+
+- name: add AAA user to libnss-ato config
+  template: src="libnss-ato.j2" dest="{{libnss_ato_file}}"
+  tags:
+    - aaa
+    - services

@@ -1,0 +1,7 @@
+#jinja2:lstrip_blocks: True
+{% set aaavars = node_services.aaa %}
+# Created by Ansible
+# server[:port]             shared_secret      timeout (s)  source_ip            vrf
+{% if aaavars.radius is defined %}
+{{aaavars.radius.server}}             {{aaavars.radius.secret}}      3  {{aaavars.radius.source|default("")}}            {{aaavars.radius.vrf|default("")}}
+{% endif %}

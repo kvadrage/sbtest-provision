@@ -1,0 +1,24 @@
+#jinja2:lstrip_blocks: True
+{% set aaavars = node_services.aaa %}
+#%PAM-1.0
+{% if aaavars.auth is defined and aaavars.auth == "radius" and aaavars.radius is defined %}
+auth            sufficient      pam_radius_auth.so debug
+auth            required        pam_userpass.so
+auth            include         common-login-use_first_pass
+account         include         common-login
+password        include         common-login
+session         include         common-login
+{% elif aaavars.auth is defined and aaavars.auth == "tacacs" and aaavars.tacacs is defined %}
+auth            sufficient      pam_tacplus.so debug server={{aaavars.tacacs.server}} secret={{aaavars.tacacs.secret}}
+auth            required        pam_userpass.so
+auth            include         common-login-use_first_pass
+account         include         common-login
+password        include         common-login
+session         include         common-login
+{% else %}
+auth            required        pam_userpass.so
+auth            include         common-login-use_first_pass
+account         include         common-login
+password        include         common-login
+session         include         common-login
+{% endif %}

@@ -9,22 +9,25 @@ global:
       # List of time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
       timezone: "Europe/Moscow"
       ntp:
-        servers: ["10.35.81.200"]
+        servers: ["10.36.19.9"]
     zabbix:
-      server: "10.35.81.200"
-    aaa:
-      auth: "default" # "default", "radius", "tacacs"
-      radius:
-        server: "10.35.81.200"
-        secret: "Mellanox"
-      tacacs:
-        server: "10.35.81.200"
-        secret: "Mellanox"
+      server: "10.36.19.9"
 
 
 node:
 ################################## leaf01 ####################################
   leaf01_mellanox:
+    services:
+      syslog:
+        server: "10.36.19.9"
+      aaa:
+        auth: "default" # "default", "radius", "tacacs"
+        radius:
+          server: "10.36.19.9"
+          secret: "Mellanox"
+        tacacs:
+          server: "10.36.19.9"
+          secret: "Mellanox"
     router_id: "10.255.0.1"
     vrfs:
 {% for n in vrfs_range %}

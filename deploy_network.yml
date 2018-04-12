@@ -14,6 +14,7 @@
   roles:
     - network_alt_rcnet
     - bird
+    - services_alt
 
 - hosts: servers
   user: admin

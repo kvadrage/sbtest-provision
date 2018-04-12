@@ -1,45 +1,34 @@
-- name: restart LLDP
-  service: name=lldpd state=restarted
-
-- name: restart NTP
-  service: name=ntp state=restarted
-
-- name: restart SNMP
-  service: name=snmpd state=restarted
-
 - name: update timezone
   command: tzupdate
   notify: verify timezone
 
+- name: verify timezone
+  command: 'date +"%Z %z"'
+
+- name: restart NTP
+  service: name=ntpd state=restarted enabled=yes
+
+- name: restart syslog
+  service: name=syslogd state=restarted
+
+- name: restart Zabbix Agent
+  service: name=zabbix_agentd state=restarted enabled=yes
+
+- name: restart sshd
+  service: name=sshd state=restarted
+
+- name: restart LLDP
+  service: name=lldpd state=restarted enabled=yes
+
 #Pull the lldp neighbor table
-- name: Check lldp neighbors
+- name: check lldp neighbors
   command: lldpctl
   register: lldpctl_output
   notify: Print lldp neighbors
 
 #Print out the results (Note in the command above you could use JSON output by adding -f json)
-- name: Print lldp neighbors
+- name: print lldp neighbors
   debug: var=lldpctl_output.stdout.split('\n')
 
-- name: verify NTP
-  command: ntpq -p
-  register: ntpq_output
-  notify: Print ntp peer status
-
-- name: verify timezone
-  command: 'date +"%Z %z"'
-
-- name: Print ntp peer status
-  debug: var=ntpq_output.stdout.split('\n')
-
-- name: restart rsyslog
-  service: name=rsyslog state=restarted
-
-- name: verify SNMP
-  command: systemctl status snmpd.service
-  register: snmp_status
-  failed_when: "'running' not in snmp_status.stdout"
-  changed_when: False
-
-- name: restart Zabbix Agent
-  service: name=zabbix-agent state=restarted
+- name: restart SNMP
+  service: name=snmpd state=restarted enabled=yes

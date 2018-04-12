@@ -1,2 +1,12 @@
 ---
-clock_file: /etc/sysconfig/clock
+clock_file: "/etc/sysconfig/clock"
+ntp_file: "/etc/ntpd.conf"
+syslog_file: "/etc/syslog.conf"
+zabbix_agent_file: "/etc/zabbix/zabbix_agentd.conf"
+pam_radius_file: "/etc/pam_radius_auth.conf"
+libnss_ato_file: "/etc/libnss-ato.conf"
+nsswitch_file: "/etc/nsswitch.conf"
+pamd_sshd_file: "/etc/pam.d/sshd"
+
+aaa_user: "aaa"
+aaa_user_bashrc_file: "/home/{{aaa_user}}/.bashrc"
