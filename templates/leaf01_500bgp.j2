@@ -116,31 +116,6 @@ node:
           bfd: True
 {% endfor %}
 
-        {% for n in range(0,256,2) %}
-        swp49.{{n+1}}:
-          ipv4_addresses: ["10.252.201.{{n}}/31"]
-          vrf: vrf1
-          bfd: True
-        {% endfor %}
-        {% for n in range(0,256,2) %}
-        swp49.{{256+n+1}}:
-          ipv4_addresses: ["10.252.202.{{n}}/31"]
-          vrf: vrf1
-          bfd: True
-        {% endfor %}
-        {% for n in range(0,256,2) %}
-        swp49.{{512+n+1}}:
-          ipv4_addresses: ["10.252.203.{{n}}/31"]
-          vrf: vrf1
-          bfd: True
-        {% endfor %}
-        {% for n in range(0,256,2) %}
-        swp49.{{768+n+1}}:
-          ipv4_addresses: ["10.252.204.{{n}}/31"]
-          vrf: vrf1
-          bfd: True
-        {% endfor %}
-
         # to spine01 swp7 (bfd test)
         swp55:
           autoneg: False
