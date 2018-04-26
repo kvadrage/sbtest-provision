@@ -75,12 +75,14 @@
     name: "{{aaa_user}}"
     shell: /bin/bash
     comment: AAA user
+  when: node_services.aaa is defined
   tags:
     - aaa
     - services
 
 - name: render AAA user .bashrc
   template: src="aaa_user_bashrc.j2" dest="{{aaa_user_bashrc_file}}" owner="{{aaa_user}}"
+  when: node_services.aaa is defined
   tags:
     - aaa
     - services
@@ -89,12 +91,14 @@
   command: getent passwd "{{aaa_user}}"
   register: getent_passwd
   changed_when: False
+  when: node_services.aaa is defined
   tags:
     - aaa
     - services
 
 - name: add AAA user to libnss-ato config
   template: src="libnss-ato.j2" dest="{{libnss_ato_file}}"
+  when: node_services.aaa is defined
   tags:
     - aaa
     - services

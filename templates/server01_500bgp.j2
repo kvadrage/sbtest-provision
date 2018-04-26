@@ -1,0 +1,125 @@
+{% set vrfs = batch.vrfs %}
+{% set vrfs_range = range(1, 2) %}
+global:
+  save_local: "disable"
+  ignore_ifaces: ["eth0", "vagrant"]
+
+  services:
+    clock:
+      #   #List of time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      timezone: "Europe/Moscow"
+      # ntp:
+      #   servers: ["10.35.81.200"]
+      #   #Interface to use eth0(default)
+      #   listen: "eth0"
+
+
+node:
+################################## server01 ####################################
+  pprb-1:
+    router_id: "10.255.0.31"
+    interfaces:
+      loopback:
+        "lo:0":
+          ipv4_addresses: ["10.255.1.101/32"]
+        "lo:1":
+          ipv4_addresses: ["10.255.1.111/32"]
+        "lo:2":
+          ipv4_addresses: ["10.255.2.101/32"]
+      common:
+        eth11:
+          ipv4_addresses: ["10.252.1.102/30"]
+          bfd: True
+
+{#}        # to server01 eth11 (for 500 BGP sessions test)
+{% for n in range(0,256,2) %}
+        eth11.{{n+1}}:
+          ipv4_addresses: ["10.252.101.{{n+1}}/31"]
+          bfd: True
+{% endfor %}
+{% for n in range(0,256,2) %}
+        eth11.{{256+n+1}}:
+          ipv4_addresses: ["10.252.102.{{n+1}}/31"]
+          bfd: True
+{% endfor %}
+{% for n in range(0,256,2) %}
+        eth11.{{512+n+1}}:
+          ipv4_addresses: ["10.252.103.{{n+1}}/31"]
+          bfd: True
+{% endfor %}
+{% for n in range(0,256,2) %}
+        eth11.{{768+n+1}}:
+          ipv4_addresses: ["10.252.104.{{n+1}}/31"]
+          bfd: True
+{% endfor %}
+#}
+        eth12:
+          ipv4_addresses: ["10.252.1.106/30"]
+          bfd: True
+        eth21:
+          ipv4_addresses: ["10.252.2.110/30"]
+          bfd: True
+        eth22:
+          ipv4_addresses: ["10.252.2.114/30"]
+          bfd: True
+    bgp:
+      local_asn: 650111
+      merge_paths: True
+      neighbors:
+        - name: to_leafA_100g
+          ipv4: "10.252.1.101"
+          asn: 650201
+          bfd: eth11
+          template: servers
+
+{% for n in range(0,256,2) %}
+        - name: to_leafA_100g_1_{{n+1}}
+          ipv4: "10.252.101.{{n}}"
+          asn: 650201
+          template: servers
+          bfd: eth11.{{n+1}}
+          template: servers
+{% endfor %}
+{% for n in range(0,256,2) %}
+        - name: to_leafA_100g_2_{{n+1}}
+          ipv4: "10.252.102.{{n}}"
+          asn: 650201
+          template: servers
+          bfd: eth11.{{256+n+1}}
+          template: servers
+{% endfor %}
+{% for n in range(0,256,2) %}
+        - name: to_leafA_100g_3_{{n+1}}
+          ipv4: "10.252.103.{{n}}"
+          asn: 650201
+          template: servers
+          bfd: eth11.{{512+n+1}}
+          template: servers
+{% endfor %}
+{% for n in range(0,256,2) %}
+        - name: to_leafA_100g_4_{{n+1}}
+          ipv4: "10.252.104.{{n}}"
+          asn: 650201
+          template: servers
+          bfd: eth11.{{768+n+1}}
+          template: servers
+{% endfor %}
+        - name: to_leafB_100g
+          ipv4: "10.252.1.105"
+          asn: 650201
+          bfd: eth12
+          template: servers
+        - name: to_leafA_25g
+          ipv4: "10.252.2.109"
+          asn: 650201
+          bfd: eth21
+          template: servers
+        - name: to_leafB_25g
+          ipv4: "10.252.2.113"
+          asn: 650201
+          bfd: eth22
+          template: servers
+    import: all
+    export: export_bgp_from_servers
+    kernel:
+      import: import_servers_static_vrf1

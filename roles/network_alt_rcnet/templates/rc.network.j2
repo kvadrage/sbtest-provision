@@ -3,6 +3,7 @@
 {% set node = node[inventory_hostname] %}
 {% set intvars = ifaces_all %}
 {% set bondvars = ifaces_bond %}
+{% set bridgevars = ifaces_bridge %}
 {% set loopvars = ifaces_loopback %}
 {% set vrfs = node.vrfs %}
 
@@ -68,7 +69,7 @@ ip route add {{ route }} vrf {{intvars.vrf}}
 {% endif %}
 
 # bonds
-{% for bond in bondvars|sort %}
+{% for iface in bondvars|sort %}
 ## {{iface}}
 ip link add name {{bond}} type bond mode 802.3ad
 {%  if iface.members %}
@@ -77,8 +78,6 @@ ip link set dev {{member}} master {{bond}}
 {%    endfor %}
 {%  endif %}
 {% endfor %}
-
-# bridges
 
 # loopbacks
 sleep 2s
@@ -155,6 +154,16 @@ ip -6 addr add {{ addr | ipv6 }} dev {{ifname}}
 {%    endfor %}
 {%  endif %}
 
+{% endfor %}
+
+# bridges
+{% for bridge in bridgevars|sort %}
+## {{bridge}}
+ip link add name {{bridge}} type bridge
+{% if bridge.vlan_aware is defined and bridge.vlan_aware %}
+ip link set dev {{bridge}} type bridge vlan_filtering 1
+{% endif %}
+ip link set dev {{bridge}} up
 {% endfor %}
 
 # bring up interfaces

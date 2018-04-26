@@ -29,7 +29,8 @@ filter {{f}} {
 {%  endfor %}
 {%  if 'servers' in group_names %}
 filter export_bgp_from_servers {
-if net ~ [ {{node.router_id}}/32{% for iface in ifaces_common %}{% for ip in ifaces_common[iface].ipv4_addresses %}, {{ip|ipv4('network')}}/{{ip|ipv4('prefix')}}+{% endfor %}{% endfor %} ] then accept;
+{#if net ~ [ {{node.router_id}}/32{% for iface in intvars %}{% for ip in intvars[iface].ipv4_addresses %}, {{ip|ipv4('network')}}/{{ip|ipv4('prefix')}}+{% endfor %}{% endfor %} ] then accept;#}
+if net ~ [ {{node.router_id}}/32{% for iface in intvars %}{% for ip in intvars[iface].ipv4_addresses %}, {% if iface is match("^lo*") %}{{ip}}{% else %}{{ip|ipv4('network')}}/{{ip|ipv4('prefix')}}+{% endif %}{% endfor %}{% endfor %} ] then accept;
 reject;
 }
 {%  endif %}
@@ -86,8 +87,9 @@ protocol bfd {
 
 # Direct protocol for global routing table
 protocol direct {
-    interface "-eth0","lo"{% for iface in intvars %}{% if not intvars[iface].vrf is defined and intvars[iface].import is defined and intvars[iface].import == "direct"%}, "{{iface}}"{% endif %}{% endfor %};
-    {#interface "-eth0","lo";#}
+    {#interface "-eth0","lo";
+    interface "-eth0","lo"{% for iface in intvars %}{% if not intvars[iface].vrf is defined and intvars[iface].import is defined and intvars[iface].import == "direct"%}, "{{iface}}"{% endif %}{% endfor %};#}
+    interface "-eth0","lo"{% for iface in intvars %}{% if not intvars[iface].vrf is defined %}, "{{iface}}"{% endif %}{% endfor %};
 }
 
 {% if vrfs is defined %}
@@ -95,8 +97,9 @@ protocol direct {
 {%   for vrf in vrfs %}
 # {{vrf.name}}
 protocol direct {
-    interface "{{vrf.name}}"{% for iface in intvars %}{% if iface != vrf.name and intvars[iface].vrf is defined and intvars[iface].vrf == vrf.name and intvars[iface].import is defined and intvars[iface].import == "direct"%}, "{{iface}}"{% endif %}{% endfor -%};
-    {#interface "{{vrf.name}}";#}
+    {#interface "{{vrf.name}}";
+    interface "{{vrf.name}}"{% for iface in intvars %}{% if iface != vrf.name and intvars[iface].vrf is defined and intvars[iface].vrf == vrf.name and intvars[iface].import is defined and intvars[iface].import == "direct"%}, "{{iface}}"{% endif %}{% endfor %};#}
+    interface "{{vrf.name}}"{% for iface in intvars %}{% if iface != vrf.name and intvars[iface].vrf is defined and intvars[iface].vrf == vrf.name %}, "{{iface}}"{% endif %}{% endfor %};
     table {{vrf.name}};
 }
 {%   endfor %}

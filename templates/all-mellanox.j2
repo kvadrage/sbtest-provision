@@ -12,21 +12,21 @@ global:
         servers: ["10.36.19.9"]
     zabbix:
       server: "10.36.19.9"
+    syslog:
+      server: "10.24.17.10"
 
 
 node:
 ################################## leaf01 ####################################
   leaf01_mellanox:
     services:
-      syslog:
-        server: "10.36.19.9"
       aaa:
-        auth: "default" # "default", "radius", "tacacs"
+        auth: "radius" # "default", "radius", "tacacs"
         radius:
-          server: "10.36.19.9"
+          server: "10.35.82.105"
           secret: "Mellanox"
         tacacs:
-          server: "10.36.19.9"
+          server: "10.35.82.105"
           secret: "Mellanox"
     router_id: "10.255.0.1"
     vrfs:
@@ -58,7 +58,7 @@ node:
         # to server01 eth11
         swp56:
           autoneg: True
-          speed: 25000
+          speed: 100000
           ipv4_addresses: ["10.252.1.101/30"]
           vrf: vrf1
           bfd: True
@@ -141,14 +141,14 @@ node:
         - name: to_spine01
           ipv4: "10.252.0.17"
           asn: 650300
-          bfd: swp1
+          bfd: swp49
 {% for n in vrfs_range %}
 {% set vrf = vrfs.prefix + n|string%}
         - name: to_spine01_{{vrf}}
           vrf: {{vrf}}
           ipv4: "10.252.{{n}}.17"
           asn: 650300
-          bfd: swp1.{{ vrfs.offset1 + n }}
+          bfd: swp49.{{ vrfs.offset1 + n }}
           template: fabric_vrf
 {% endfor %}
         # spine01 swp7 (bfd test)
@@ -162,42 +162,42 @@ node:
         - name: to_spine02
           ipv4: "10.252.0.21"
           asn: 650300
-          bfd: swp2
+          bfd: swp50
 {% for n in vrfs_range %}
 {% set vrf = vrfs.prefix + n|string%}
         - name: to_spine02_{{vrf}}
           vrf: {{vrf}}
           ipv4: "10.252.{{n}}.21"
           asn: 650300
-          bfd: swp2.{{ vrfs.offset1 + n }}
+          bfd: swp50.{{ vrfs.offset1 + n }}
           template: fabric_vrf
 {% endfor %}
         # spine03
         - name: to_spine03
           ipv4: "10.252.0.25"
           asn: 650300
-          bfd: swp3
+          bfd: swp51
 {% for n in vrfs_range %}
 {% set vrf = vrfs.prefix + n|string%}
         - name: to_spine03_{{vrf}}
           vrf: {{vrf}}
           ipv4: "10.252.{{n}}.25"
           asn: 650300
-          bfd: swp3.{{ vrfs.offset1 + n }}
+          bfd: swp51.{{ vrfs.offset1 + n }}
           template: fabric_vrf
 {% endfor %}
         # spine04
         - name: to_spine04
           ipv4: "10.252.0.29"
           asn: 650300
-          bfd: swp4
+          bfd: swp52
 {% for n in vrfs_range %}
 {% set vrf = vrfs.prefix + n|string%}
         - name: to_spine04_{{vrf}}
           vrf: {{vrf}}
           ipv4: "10.252.{{n}}.29"
           asn: 650300
-          bfd: swp4.{{ vrfs.offset1 + n }}
+          bfd: swp52.{{ vrfs.offset1 + n }}
           template: fabric_vrf
 {% endfor %}
         # server01_25g
@@ -251,7 +251,7 @@ node:
         # to server01 eth12
         swp56:
           autoneg: True
-          speed: 25000
+          speed: 100000
           ipv4_addresses: ["10.252.1.105/30"]
           vrf: vrf1
           bfd: True
@@ -752,6 +752,15 @@ node:
 
 ################################## spine01 ####################################
   spine01_bank:
+    services:
+      aaa:
+        auth: "radius" # "default", "radius", "tacacs"
+        radius:
+          server: "10.35.82.105"
+          secret: "Mellanox"
+        tacacs:
+          server: "10.35.82.105"
+          secret: "Mellanox"
     router_id: "10.255.0.11"
     vrfs:
 {% for n in vrfs_range %}
@@ -1510,6 +1519,10 @@ node:
       loopback:
         "lo:0":
           ipv4_addresses: ["10.255.1.101/32"]
+        "lo:1":
+          ipv4_addresses: ["10.255.1.111/32"]
+        "lo:2":
+          ipv4_addresses: ["10.255.2.101/32"]
       common:
         eth11:
           ipv4_addresses: ["10.252.1.102/30"]
@@ -1559,6 +1572,10 @@ node:
       loopback:
         "lo:0":
           ipv4_addresses: ["10.255.1.102/32"]
+        "lo:1":
+          ipv4_addresses: ["10.255.1.112/32"]
+        "lo:2":
+          ipv4_addresses: ["10.255.2.102/32"]
       common:
         eth11:
           ipv4_addresses: ["10.252.1.118/30"]

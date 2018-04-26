@@ -10,21 +10,21 @@ global:
         servers: ["10.36.19.9"]
     zabbix:
       server: "10.36.19.9"
+    syslog:
+      server: "10.24.17.10"
 
 
 node:
 ################################## leaf01 ####################################
   leaf01_mellanox:
     services:
-      syslog:
-        server: "10.36.19.9"
       aaa:
-        auth: "default" # "default", "radius", "tacacs"
+        auth: "radius" # "default", "radius", "tacacs"
         radius:
-          server: "10.36.19.9"
+          server: "10.35.82.105"
           secret: "Mellanox"
         tacacs:
-          server: "10.36.19.9"
+          server: "10.35.82.105"
           secret: "Mellanox"
     router_id: "10.255.0.1"
     vrfs:
@@ -365,7 +365,7 @@ node:
         # to server01 eth11
         swp56:
           autoneg: True
-          speed: 25000
+          speed: 100000
           ipv4_addresses: ["10.252.1.101/30"]
           vrf: vrf1
           bfd: True
@@ -3363,7 +3363,7 @@ node:
         # to server01 eth12
         swp56:
           autoneg: True
-          speed: 25000
+          speed: 100000
           ipv4_addresses: ["10.252.1.105/30"]
           vrf: vrf1
           bfd: True
@@ -11970,6 +11970,15 @@ node:
 
 ################################## spine01 ####################################
   spine01_bank:
+    services:
+      aaa:
+        auth: "radius" # "default", "radius", "tacacs"
+        radius:
+          server: "10.35.82.105"
+          secret: "Mellanox"
+        tacacs:
+          server: "10.35.82.105"
+          secret: "Mellanox"
     router_id: "10.255.0.11"
     vrfs:
       - name: vrf1
@@ -26972,6 +26981,10 @@ node:
       loopback:
         "lo:0":
           ipv4_addresses: ["10.255.1.101/32"]
+        "lo:1":
+          ipv4_addresses: ["10.255.1.111/32"]
+        "lo:2":
+          ipv4_addresses: ["10.255.2.101/32"]
       common:
         eth11:
           ipv4_addresses: ["10.252.1.102/30"]
@@ -27021,6 +27034,10 @@ node:
       loopback:
         "lo:0":
           ipv4_addresses: ["10.255.1.102/32"]
+        "lo:1":
+          ipv4_addresses: ["10.255.1.112/32"]
+        "lo:2":
+          ipv4_addresses: ["10.255.2.102/32"]
       common:
         eth11:
           ipv4_addresses: ["10.252.1.118/30"]
